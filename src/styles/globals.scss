@@ -1,0 +1,50 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+html {
+  @media (max-width: 1080px) {
+    font-size: 93.75%; // 15px
+  }
+
+  @media (max-width: 720px) {
+    font-size: 87.5%; // 14px
+  }
+}
+
+:root {
+  --background: #191414;
+
+  --primary: #1DB954;
+  --secondary: #FF473E;
+
+  --text: #fff;
+}
+
+body {
+  background: var(--background);
+}
+
+body, button, textarea, input {
+  color: var(--text);
+  font: 400 1rem;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  border: 0;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+    filter: brightness(110%);
+  }
+}
