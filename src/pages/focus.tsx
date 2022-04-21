@@ -1,10 +1,15 @@
 import Head from 'next/head';
+import { signOut, useSession } from 'next-auth/react';
 
 import styles from 'styles/focus.module.scss';
 import { FaSpotify } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Focus() {
+  const session = useSession();
+  const router = useRouter();
+
   const startTime = 25 * 60; // 25 minutes
 
   const [time, setTime] = useState(startTime);
@@ -13,7 +18,10 @@ export default function Focus() {
   let countdownTimeout: NodeJS.Timeout;
 
   const seconds = time % 60 < 10 ? `0${time % 60}` : time % 60;
-  const minutes = Math.floor(time / 60) < 10 ? `0${Math.floor(time / 60)}` : Math.floor(time / 60);
+  const minutes =
+    Math.floor(time / 60) < 10
+      ? `0${Math.floor(time / 60)}`
+      : Math.floor(time / 60);
 
   useEffect(() => {
     if (isActive && time > 0) {
@@ -27,7 +35,7 @@ export default function Focus() {
   }, [isActive, time]);
 
   function startCountdown() {
-    console.log(minutes.toString().length)
+    console.log(minutes.toString().length);
     setIsActive(true);
   }
 
@@ -64,6 +72,12 @@ export default function Focus() {
     }
   ];
 
+  useEffect(() => {
+    if (session.status === "unauthenticated") {
+      router.push('/');
+    }
+  }, [session]);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -76,9 +90,12 @@ export default function Focus() {
             <span>Vento na cara</span> - Terno Rei
           </p>
         </div>
-        <button className={styles.userWrapper}>
-          <p>ericknathan</p>
-          <img src="https://github.com/ericknathan.png" alt="Erick Nathan" />
+        <button className={styles.userWrapper} onClick={() => signOut()}>
+          <p>{session?.data?.user?.name}</p>
+          <img
+            src={session?.data?.user?.image}
+            alt={session?.data?.user?.name}
+          />
         </button>
       </header>
       <main>
