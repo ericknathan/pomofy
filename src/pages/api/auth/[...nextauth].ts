@@ -1,6 +1,5 @@
 import NextAuth from 'next-auth';
 import SpotifyProvider from 'next-auth/providers/spotify';
-import { setCookie } from 'nookies';
 
 const scopes = [
   'user-top-read',
