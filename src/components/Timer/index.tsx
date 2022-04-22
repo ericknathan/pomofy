@@ -7,10 +7,11 @@ import styles from './timer.module.scss';
 export function Timer() {
   const session = useSession();
 
-  const startTime = 25 * 60; // 25 minutes
+  const longTime = 25 * 60; // 25 minutes
+  const shortTime = 5 * 60; // 5 minutes
 
-  const [time, setTime] = useState(startTime);
-  const [isActive, setIsActive] = useState(false);
+  const [time, setTime] = useState(longTime);
+  const [isActive, setIsActive] = useState('long - paused');
   const [hasTimeFinished, setHasTimeFinished] = useState(false);
   let countdownTimeout: NodeJS.Timeout;
 
@@ -21,36 +22,113 @@ export function Timer() {
       : Math.floor(time / 60);
 
   useEffect(() => {
-    if (isActive && time > 0) {
-      countdownTimeout = setTimeout(() => {
-        setTime(time - 1);
-      }, 1000);
-    } else if (isActive && time === 0) {
-      setHasTimeFinished(true);
-      setIsActive(false);
-      stopPlayingTrack();
+    if (isActive.includes('focus')) {
+      if (time > 0) {
+        countdownTimeout = setTimeout(() => {
+          setTime(time - 1);
+        }, 1000);
+      } else if (time === 0) {
+        setHasTimeFinished(true);
+        if (isActive === 'long - focus') {
+          setIsActive('long - paused');
+          setTime(longTime);
+        } else {
+          setIsActive('short - paused');
+          setTime(shortTime);
+        }
+
+        stopPlayingTrack();
+      }
     }
   }, [isActive, time]);
 
-  function resumeTrack() {
-    return axios.put('https://api.spotify.com/v1/me/player/play', null, {
-      headers: {
-        Authorization: `Bearer ${session.data.accessToken}`
+  useEffect(() => {
+    if (hasTimeFinished) {
+      let text = '';
+      if (isActive.includes('short')) {
+        text = 'Its time to take a break! Click here to start.';
+      } else {
+        text = 'Its time to focus! Click here to start.';
       }
-    });
+
+      const notification = new Notification('Pomofy', {
+        body: text,
+        icon: 'notification.png'
+      });
+      var audio = new Audio('audio.mp3');
+      audio.play();
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+
+        if (isActive.includes('short')) {
+          setIsActive('short - focus');
+        } else {
+          setIsActive('long - focus');
+        }
+        setHasTimeFinished(false);
+      };
+
+      notification.onclose = () => {
+        audio.pause();
+      };
+
+      setTimeout(() => {
+        notification.close();
+      }, 10000);
+    }
+  }, [hasTimeFinished]);
+
+  useEffect(() => {
+    function checkNotificationPromise() {
+      try {
+        Notification.requestPermission().then();
+      } catch {
+        return false;
+      }
+
+      return true;
+    }
+
+    if ('Notification' in window) {
+      if (checkNotificationPromise()) {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
+  function resumeTrack() {
+    return axios
+      .put('https://api.spotify.com/v1/me/player/play', null, {
+        headers: {
+          Authorization: `Bearer ${session.data.accessToken}`
+        }
+      })
+      .catch(error => {
+        return error;
+      });
   }
 
   function stopPlayingTrack() {
-    return axios.put('https://api.spotify.com/v1/me/player/pause', null, {
-      headers: {
-        Authorization: `Bearer ${session.data.accessToken}`
-      }
-    });
+    return axios
+      .put('https://api.spotify.com/v1/me/player/pause', null, {
+        headers: {
+          Authorization: `Bearer ${session.data.accessToken}`
+        }
+      })
+      .catch(error => {
+        return error;
+      });
   }
 
   async function startCountdown() {
     try {
-      setIsActive(true);
+      setHasTimeFinished(false);
+
+      if (isActive === 'long - paused') setIsActive('short - focus');
+      else if (isActive === 'short - paused') setIsActive('long - focus');
+
       await resumeTrack();
     } catch (error) {
       const errorMessage = error.response.data.error.message;
@@ -66,7 +144,9 @@ export function Timer() {
 
   async function stopCountdown() {
     try {
-      setIsActive(false);
+      if (isActive === 'long - focus') setIsActive('long - paused');
+      else if (isActive === 'short - focus') setIsActive('short - paused');
+
       await stopPlayingTrack();
     } catch (error) {
       const errorMessage = error.response.data.error.message;
@@ -81,9 +161,9 @@ export function Timer() {
   }
 
   function resetCountdown() {
-    setTime(startTime);
+    setTime(longTime);
     setHasTimeFinished(false);
-    setIsActive(false);
+    setIsActive('long - paused');
     stopPlayingTrack();
   }
 
@@ -93,15 +173,19 @@ export function Timer() {
         <span>{minutes}</span>:<span>{seconds}</span>
       </h1>
       <div className={styles.controllers}>
-        {!isActive && time !== startTime ? (
+        {!isActive.includes('focus') && time !== longTime ? (
           <>
             {time !== 0 && <button onClick={startCountdown}>Continue</button>}
             <button onClick={resetCountdown}>Restart</button>
           </>
         ) : (
-          !isActive && <button onClick={startCountdown}>Start</button>
+          !isActive.includes('focus') && (
+            <button onClick={startCountdown}>Start</button>
+          )
         )}
-        {isActive && <button onClick={stopCountdown}>Pause</button>}
+        {isActive.includes('focus') && (
+          <button onClick={stopCountdown}>Pause</button>
+        )}
       </div>
     </div>
   );

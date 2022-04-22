@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 import styles from 'styles/focus.module.scss';
 
@@ -29,23 +29,32 @@ export default function Focus() {
     if (!session?.data?.accessToken) return;
 
     async function getCurrentlyPlaying() {
-      const response = await axios.get(
-        `https://api.spotify.com/v1/me/player/currently_playing`,
-        {
-          headers: {
-            Authorization: `Bearer ${session.data.accessToken}`
+      try {
+        const response = await axios.get(
+          `https://api.spotify.com/v1/me/player/currently_playing`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.data.accessToken}`
+            }
           }
+        );
+
+        if (response.status === 204) return;
+
+        const data = await response.data;
+
+        setCurrentPlayingTrack({
+          artist: data.item.artists.map(artist => artist.name).join(', '),
+          track: data.item.name
+        });
+      } catch(error) {
+        const errorMessage = error.response.data.error.message;
+        if(errorMessage.includes('The access token expired')) {
+          signOut({
+            callbackUrl: '/'
+          });
         }
-      );
-
-      if (response.status === 204) return;
-
-      const data = await response.data;
-
-      setCurrentPlayingTrack({
-        artist: data.item.artists.map(artist => artist.name).join(', '),
-        track: data.item.name
-      });
+      }
     }
 
     getCurrentlyPlaying();
@@ -54,7 +63,7 @@ export default function Focus() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>{`Pomofy | ${currentPlayingTrack.track} • ${currentPlayingTrack.artist}`}</title>
+        <title>{`Pomofy ${currentPlayingTrack.track !== '' ? `| ${currentPlayingTrack.track} • ${currentPlayingTrack.artist}` : ''}`}</title>
       </Head>
       <Header currentPlayingTrack={currentPlayingTrack} />
       <main>
