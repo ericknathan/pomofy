@@ -29,7 +29,6 @@ export default function Home() {
         onClick={() =>
           signIn('spotify', {
             redirectTo: '/focus',
-            callbackUrl: 'http://localhost:3000/focus'
           })
         }
       >

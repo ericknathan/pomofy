@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { signOut, useSession } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 
 import styles from 'styles/focus.module.scss';
 
@@ -21,6 +21,7 @@ export default function Focus() {
   });
 
   useEffect(() => {
+    console.log(session);
     if (session.status === 'unauthenticated') {
       router.push('/');
       return;
@@ -47,12 +48,18 @@ export default function Focus() {
           artist: data.item.artists.map(artist => artist.name).join(', '),
           track: data.item.name
         });
-      } catch(error) {
+      } catch (error) {
         const errorMessage = error.response.data.error.message;
-        if(errorMessage.includes('The access token expired')) {
-          signOut({
-            callbackUrl: '/'
-          });
+        if (errorMessage.includes('The access token expired')) {
+          try {
+            signIn('spotify', {
+              redirectTo: '/focus',
+            });
+          } catch {
+            signOut({
+              callbackUrl: '/'
+            });
+          }
         }
       }
     }
@@ -63,7 +70,11 @@ export default function Focus() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>{`Pomofy ${currentPlayingTrack.track !== '' ? `| ${currentPlayingTrack.track} • ${currentPlayingTrack.artist}` : ''}`}</title>
+        <title>{`Pomofy ${
+          currentPlayingTrack.track !== ''
+            ? `| ${currentPlayingTrack.track} • ${currentPlayingTrack.artist}`
+            : ''
+        }`}</title>
       </Head>
       <Header currentPlayingTrack={currentPlayingTrack} />
       <main>
