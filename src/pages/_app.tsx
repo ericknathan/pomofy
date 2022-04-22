@@ -1,3 +1,4 @@
+import 'react-toastify/dist/ReactToastify.css';
 import 'styles/globals.scss';
 import { SessionProvider } from 'next-auth/react';
 

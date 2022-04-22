@@ -5,6 +5,8 @@ import styles from 'styles/focus.module.scss';
 import { FaSpotify } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function Focus() {
   const session = useSession();
@@ -34,48 +36,118 @@ export default function Focus() {
     }
   }, [isActive, time]);
 
-  function startCountdown() {
-    console.log(minutes.toString().length);
-    setIsActive(true);
+  function resumeTrack() {
+    return axios.put('https://api.spotify.com/v1/me/player/play', null, {
+      headers: {
+        Authorization: `Bearer ${session.data.accessToken}`
+      }
+    });
   }
 
-  function stopCountdown() {
-    setIsActive(false);
+  function stopPlayingTrack() {
+    return axios.put('https://api.spotify.com/v1/me/player/pause', null, {
+      headers: {
+        Authorization: `Bearer ${session.data.accessToken}`
+      }
+    });
+  }
+
+  async function startCountdown() {
+    try {
+      setIsActive(true);
+      await resumeTrack();
+    } catch (error) {
+      const errorMessage = error.response.data.error.message;
+      if (errorMessage.includes('Restriction violated')) {
+        return toast.info('The music is already playing!');
+      } else if (errorMessage.includes('No active device found')) {
+        return toast.error('No active device found!');
+      }
+
+      return toast.error(error.response?.data?.error?.message);
+    }
+  }
+
+  async function stopCountdown() {
+    try {
+      setIsActive(false);
+      await stopPlayingTrack();
+    } catch (error) {
+      const errorMessage = error.response.data.error.message;
+      if (errorMessage.includes('Restriction violated')) {
+        return toast.info('The music is already stopped!');
+      } else if (errorMessage.includes('No active device found')) {
+        return toast.error('No active device found!');
+      }
+
+      return toast.error(error.response?.data?.error?.message);
+    }
   }
 
   function resetCountdown() {
     setTime(startTime);
     setHasTimeFinished(false);
     setIsActive(false);
+    stopPlayingTrack();
   }
 
-  const topTracks = [
-    {
-      name: 'Bixinho',
-      artist: 'Lupa'
-    },
-    {
-      name: 'Você gosta dela',
-      artist: 'Daparte'
-    },
-    {
-      name: 'Não foi por mal',
-      artist: 'Jovem Dionisio'
-    },
-    {
-      name: 'Nunca fui desse lugar',
-      artist: 'Daparte (Feat. Lagum)'
-    },
-    {
-      name: 'Vou Levar',
-      artist: 'O Grilo'
-    }
-  ];
+  const [topTracks, setTopTracks] = useState([]);
+  const [currentPlaying, setCurrentPlaying] = useState({
+    artist: '',
+    track: ''
+  });
 
   useEffect(() => {
-    if (session.status === "unauthenticated") {
+    if (session.status === 'unauthenticated') {
       router.push('/');
+      return;
     }
+
+    if (!session?.data?.accessToken) return;
+
+    async function getTopTracks() {
+      const response = await axios.get(
+        `https://api.spotify.com/v1/me/top/tracks?limit=5&time_range=short_term`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.data.accessToken}`
+          }
+        }
+      );
+      const data = await response.data;
+
+      const topTracks = data.items.map(item => {
+        return {
+          name: item.name,
+          artist: item.artists[0].name
+        };
+      });
+
+      setTopTracks(topTracks);
+    }
+
+    async function getCurrentlyPlaying() {
+      const response = await axios.get(
+        `https://api.spotify.com/v1/me/player/currently_playing`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.data.accessToken}`
+          }
+        }
+      );
+
+      if (response.status === 204) return;
+
+      const data = await response.data;
+
+      setCurrentPlaying({
+        artist: data.item.artists.map(artist => artist.name).join(', '),
+        track: data.item.name
+      });
+    }
+
+    getTopTracks();
+    getCurrentlyPlaying();
   }, [session]);
 
   return (
@@ -83,14 +155,28 @@ export default function Focus() {
       <Head>
         <title>Pomofy | Focus</title>
       </Head>
+      <ToastContainer />
       <header>
         <div className={styles.musicWrapper}>
           <FaSpotify size={36} color="var(--primary)" />
           <p>
-            <span>Vento na cara</span> - Terno Rei
+            {currentPlaying.track === '' ? (
+              'Nothing is playing right now'
+            ) : (
+              <>
+                <span>{currentPlaying.track}</span> - {currentPlaying.artist}
+              </>
+            )}
           </p>
         </div>
-        <button className={styles.userWrapper} onClick={() => signOut()}>
+        <button
+          className={styles.userWrapper}
+          onClick={() =>
+            signOut({
+              callbackUrl: '/'
+            })
+          }
+        >
           <p>{session?.data?.user?.name}</p>
           <img
             src={session?.data?.user?.image}
@@ -121,7 +207,7 @@ export default function Focus() {
           <h2>Top Tracks</h2>
           <div className={styles.tracks}>
             {topTracks.map((track, index) => (
-              <div className={styles.track}>
+              <div className={styles.track} key={index}>
                 <p>{index + 1}</p>
                 <div className={styles.info}>
                   <h3>{track.name}</h3>

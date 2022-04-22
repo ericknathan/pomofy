@@ -19,7 +19,10 @@ export default function Home() {
         <title>Pomofy | Login</title>
       </Head>
       <h1>Pomofy</h1>
-      <button onClick={() => signIn('spotify')}>
+      <button onClick={() => signIn('spotify', {
+        redirectTo: '/focus',
+        callbackUrl: 'http://localhost:3000/focus'
+      })}>
         Login com o Spotify
         <FaSpotify size={24} />
       </button>

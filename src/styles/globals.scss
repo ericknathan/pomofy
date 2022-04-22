@@ -33,6 +33,9 @@ html {
   --gray-500: #B7B6B6;
   --gray-600: #666666;
   --gray-900: #222222;
+
+  --toastify-color-light: var(--background-highlight) !important;
+  --toastify-text-color-light: var(--gray-400) !important;
 }
 
 body {
