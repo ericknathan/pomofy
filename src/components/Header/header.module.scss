@@ -1,0 +1,50 @@
+.headerWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-width: 25rem;
+
+  .musicWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    p {
+      font-weight: 500;
+      color: var(--gray-500);
+
+      span {
+        font-weight: 600;
+        color: var(--white);
+      }
+    }
+  }
+
+  .userWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    background-color: transparent;
+
+    &:hover {
+      transform: scale(1);
+      filter: brightness(100%);
+    }
+
+    p {
+      font-weight: 600;
+      color: var(--gray-300);
+    }
+
+    img {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+    }
+  }
+}

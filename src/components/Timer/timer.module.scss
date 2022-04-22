@@ -1,0 +1,37 @@
+.timerWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+
+  .timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 7.5rem;
+    font-weight: 600;
+
+    span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      min-width: 11rem;
+      background-color: var(--background-highlight);
+      border-radius: 5px;
+    }
+  }
+
+  .controllers {
+    display: flex;
+    gap: 1.5rem;
+
+    button {
+      padding: 0.75rem 2rem;
+      background-color: var(--background-highlight);
+      border-radius: 5px;
+    }
+  }
+}
