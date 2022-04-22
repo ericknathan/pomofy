@@ -14,6 +14,7 @@
     justify-content: space-between;
 
     width: 100%;
+    min-width: 25rem;
 
     .musicWrapper {
       display: flex;
@@ -151,6 +152,16 @@
             }
           }
         }
+      }
+    }
+
+    @media (max-width: 1250px) {
+      & {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 4rem 0;
       }
     }
   }
