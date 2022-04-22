@@ -28,6 +28,7 @@ export function Timer() {
     } else if (isActive && time === 0) {
       setHasTimeFinished(true);
       setIsActive(false);
+      stopPlayingTrack();
     }
   }, [isActive, time]);
 

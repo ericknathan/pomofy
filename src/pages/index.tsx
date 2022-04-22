@@ -18,11 +18,21 @@ export default function Home() {
       <Head>
         <title>Pomofy | Login</title>
       </Head>
-      <h1>Pomofy</h1>
-      <button onClick={() => signIn('spotify', {
-        redirectTo: '/focus',
-        callbackUrl: 'http://localhost:3000/focus'
-      })}>
+      <div className={styles.titleWrapper}>
+        <div className={styles.title}>
+          <img src="logo.svg" alt="" />
+          <h1>Pomofy</h1>
+        </div>
+      <p>A simple tool to help you focus on your tasks integrated with Spotify</p>
+      </div>
+      <button
+        onClick={() =>
+          signIn('spotify', {
+            redirectTo: '/focus',
+            callbackUrl: 'http://localhost:3000/focus'
+          })
+        }
+      >
         Login com o Spotify
         <FaSpotify size={24} />
       </button>

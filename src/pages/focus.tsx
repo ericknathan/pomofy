@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 
 import styles from 'styles/focus.module.scss';
 
-import { ToastContainer } from 'react-toastify';
 import { Header } from 'components/Header';
 import { Timer } from 'components/Timer';
 import { TopTracks } from 'components/TopTracks';
@@ -57,7 +56,6 @@ export default function Focus() {
       <Head>
         <title>{`Pomofy | ${currentPlayingTrack.track} • ${currentPlayingTrack.artist}`}</title>
       </Head>
-      <ToastContainer />
       <Header currentPlayingTrack={currentPlayingTrack} />
       <main>
         <Timer />
