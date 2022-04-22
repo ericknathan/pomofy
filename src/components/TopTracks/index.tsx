@@ -34,7 +34,7 @@ export function TopTracks() {
         const topTracks = data.items.map(item => {
           return {
             name: item.name,
-            artist: item.artists[0].name,
+            artist: item.artists.map(artist => artist.name).join(', '),
             url: item.external_urls.spotify
           };
         });
