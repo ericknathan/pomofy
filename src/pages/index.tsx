@@ -4,6 +4,7 @@ import { useSession, signIn } from 'next-auth/react';
 import styles from 'styles/home.module.scss';
 import { FaSpotify } from 'react-icons/fa';
 import { useRouter } from 'next/router';
+import { toast } from 'react-toastify';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -11,6 +12,15 @@ export default function Home() {
 
   if (session) {
     router.push('/focus');
+  }
+
+  if (router.query.error) {
+    if(router.query.error === 'OAuthCallback') {
+      router.push('/')
+      toast.error('Apparently you don\'t have Spotify Premium, so you can\'t use pomofy :(', {
+        toastId: 'premium-error',
+      });
+    }
   }
 
   return (
@@ -32,7 +42,7 @@ export default function Home() {
           })
         }
       >
-        Login com o Spotify
+        Login with Spotify
         <FaSpotify size={24} />
       </button>
     </div>
